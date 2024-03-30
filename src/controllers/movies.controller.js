@@ -3,7 +3,7 @@ import { Movie } from "../models/Movie.js";
 
 export const getMovies = async (req, res) => {
   try {
-    const movies = await Movie.find();
+    const movies = await Movie.find().populate("genres");
     res.status(200).json(movies);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -13,7 +13,7 @@ export const getMovies = async (req, res) => {
 export const getMovie = async (req, res) => {
   const { id } = req.params;
   try {
-    const movie = await Movie.findById(id);
+    const movie = await Movie.findById(id).populate("genres").exec();
     if (!movie) {
       return res
         .status(404)
@@ -27,11 +27,38 @@ export const getMovie = async (req, res) => {
 
 export const postMovie = async (req, res) => {
   try {
-    const { movieName, ...otherFields } = req.body;
+    const { movieName, genres, ...otherFields } = req.body;
 
     const existMovie = await Movie.findOne({ movieName });
     if (existMovie) {
       return res.status(409).json({ message: "This movie already exists." });
+    }
+
+    if (genres) {
+      const genreLookups = genres.map((genre) =>
+        Genre.findOne({ genreName: genre }).exec()
+      );
+
+      const genreIds = await Promise.all(genreLookups);
+
+      if (!Array.isArray(genres)) {
+        return res.status(400).json({
+          message: "The genres field must be an array.",
+        });
+      }
+
+      const invalidGenres = genres.filter(
+        (genre, index) => genreIds[index] === null
+      );
+
+      if (invalidGenres.length > 0) {
+        return res.status(400).json({
+          message:
+            "One or more of the genres in the genres field do not exist in the Genre collection.",
+        });
+      }
+
+      otherFields.genres = genreIds.map((genre) => genre._id);
     }
 
     const movie = new Movie({
@@ -49,7 +76,7 @@ export const postMovie = async (req, res) => {
 export const pacthMovie = async (req, res) => {
   try {
     const { id } = req.params;
-    const { movieName , ...otherFields } = req.body;
+    const { movieName } = req.body;
     const movie = await Movie.findById(id);
     if (!movie)
       return res.status(404).json({ message: "The movie was not found." });
