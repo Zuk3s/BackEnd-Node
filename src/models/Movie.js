@@ -15,12 +15,7 @@ const MovieSchema = new mongoose.Schema(
     director: {
       type: DirectorSchema,
     },
-    genres: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Genre",
-      },
-    ],
+    genres: [{ type: mongoose.Schema.Types.ObjectId, ref: "Genre" }],
     year: Number,
     movieImage: String,
     realImage: {

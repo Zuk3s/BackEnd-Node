@@ -5,11 +5,13 @@ import {
   postMovie,
   pacthMovie,
   deleteMovie,
+  filterMoviesByGenre,
 } from "../controllers/movies.controller.js";
 
 const router = express.Router();
 
 router.get("/", getMovies);
+router.get("/search", filterMoviesByGenre);
 router.get("/:id", getMovie);
 
 router.post("/", postMovie);
