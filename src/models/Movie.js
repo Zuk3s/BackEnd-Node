@@ -1,4 +1,5 @@
-import mongoose, { version } from "mongoose";
+import mongoose from "mongoose";
+import { DirectorSchema } from "./Director.js";
 
 const MovieSchema = new mongoose.Schema(
   {
@@ -12,13 +13,14 @@ const MovieSchema = new mongoose.Schema(
       min: 10,
     },
     director: {
-      type: String,
-      required: true,
+      type: DirectorSchema,
     },
-    genre: {
-      type: [String],
-      default: [],
-    },
+    genres: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Genre",
+      },
+    ],
     year: Number,
     movieImage: String,
     realImage: {
