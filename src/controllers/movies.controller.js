@@ -1,3 +1,4 @@
+import { Genre } from "../models/Genre.js";
 import { Movie } from "../models/Movie.js";
 
 export const getMovies = async (req, res) => {
@@ -29,15 +30,17 @@ export const postMovie = async (req, res) => {
     const { movieName, ...otherFields } = req.body;
 
     const existMovie = await Movie.findOne({ movieName });
-    if (existMovie) return res.status(409).json("This movie already exists.");
+    if (existMovie) {
+      return res.status(409).json({ message: "This movie already exists." });
+    }
 
-    const newMovie = new Movie({
+    const movie = new Movie({
       movieName,
       ...otherFields,
     });
 
-    const savedMovie = await newMovie.save();
-    res.status(201).json(savedMovie);
+    await movie.save();
+    res.status(201).json(movie);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -46,7 +49,7 @@ export const postMovie = async (req, res) => {
 export const pacthMovie = async (req, res) => {
   try {
     const { id } = req.params;
-    const { movieName, ...otherFields } = req.body;
+    const { movieName , ...otherFields } = req.body;
     const movie = await Movie.findById(id);
     if (!movie)
       return res.status(404).json({ message: "The movie was not found." });
@@ -55,9 +58,9 @@ export const pacthMovie = async (req, res) => {
     if (existMovie) return res.status(409).json("This movie already exists.");
 
     Object.assign(movie, req.body);
-    const updatedMovie = await movie.save();
+    await movie.save();
 
-    res.status(200).json(updatedMovie);
+    res.status(200).json(movie);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -70,6 +73,18 @@ export const deleteMovie = async (req, res) => {
     if (!movie)
       return res.status(404).json({ message: "The movie was not found." });
     res.status(204).send("No Content");
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const filterMoviesByGenre = (req, res) => {
+  try {
+    const genre = req.query.genre;
+    if (!genre) throw new Error("Missing 'genre' parameter in query string.");
+
+    const movies = Movie.find({ genre });
+    res.status(200).json(movies);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
