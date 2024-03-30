@@ -1,7 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import movieRoute from "./src/routes/movies.js";
+import movieRoute from "./src/routes/movies.router.js";
+import directorRoute from "./src/routes/director.router.js";
+import genreRoute from "./src/routes/genre.router.js";
 
 const app = express();
 app.use(express.json());
@@ -9,6 +11,8 @@ dotenv.config();
 
 //ROUTES
 app.use("/movies", movieRoute);
+app.use("/director", directorRoute);
+app.use("/genre", genreRoute);
 
 // Connect to MongoDB database
 
