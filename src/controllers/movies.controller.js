@@ -35,23 +35,18 @@ export const postMovie = async (req, res) => {
     }
 
     if (genres) {
-      const genreLookups = genres.map((genre) =>
-        Genre.findOne({ genreName: genre }).exec()
-      );
-
-      const genreIds = await Promise.all(genreLookups);
-
+      
       if (!Array.isArray(genres)) {
         return res.status(400).json({
           message: "The genres field must be an array.",
         });
       }
 
-      const invalidGenres = genres.filter(
-        (genre, index) => genreIds[index] === null
+      const genreIds = await Promise.all(
+        genres.map((genre) => Genre.findOne({ genreName: genre }))
       );
 
-      if (invalidGenres.length > 0) {
+      if (genreIds.includes(null)) {
         return res.status(400).json({
           message:
             "One or more of the genres in the genres field do not exist in the Genre collection.",
@@ -108,7 +103,10 @@ export const deleteMovie = async (req, res) => {
 export const filterMoviesByGenre = (req, res) => {
   try {
     const genre = req.query.genre;
-    if (!genre) throw new Error("Missing 'genre' parameter in query string.");
+    if (!genre)
+      return res
+        .status(400)
+        .send({ message: "Missing 'genre' parameter in query string." });
 
     const movies = Movie.find({ genre });
     res.status(200).json(movies);
